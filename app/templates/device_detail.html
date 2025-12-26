@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <div class="prose">
+        <h1>{{ device.name }}</h1>
+        <p>Tipo: {{ device.device_type }} | Rack: <a href="/racks/{{ device.rack.id }}">{{ device.rack.name }}</a> (U{{ device.u_position }})</p>
+    </div>
+    <a href="/racks/{{ device.rack.id }}" class="btn btn-outline">Voltar para Rack</a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- Ports List -->
+    <div class="lg:col-span-2">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Portas e Conexões</h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="table w-full">
+                        <thead>
+                            <tr>
+                                <th>Porta</th>
+                                <th>Status</th>
+                                <th>Conectado em</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for port in device.ports %}
+                            <tr class="hover">
+                                <td class="font-bold">{{ port.name }}</td>
+                                <td>
+                                    {% if port.connected_to %}
+                                        <span class="badge badge-success">Conectado</span>
+                                    {% else %}
+                                        <span class="badge badge-ghost">Livre</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if port.connected_to %}
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-mono text-xs">{{ port.connected_to.device.rack.name }}</span>
+                                            <span>→</span>
+                                            <a href="/devices/{{ port.connected_to.device.id }}" class="link link-primary font-bold">
+                                                {{ port.connected_to.device.name }} : {{ port.connected_to.name }}
+                                            </a>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-base-content/50">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if port.connected_to %}
+                                        <form action="/ports/{{ port.id }}/disconnect" method="post">
+                                            <button class="btn btn-xs btn-error">Desconectar</button>
+                                        </form>
+                                    {% else %}
+                                        <!-- Connect Modal Trigger -->
+                                        <button onclick="document.getElementById('connect_modal_{{ port.id }}').showModal()" class="btn btn-xs btn-primary">Conectar</button>
+                                        
+                                        <dialog id="connect_modal_{{ port.id }}" class="modal">
+                                            <div class="modal-box">
+                                                <h3 class="font-bold text-lg">Conectar {{ port.name }}</h3>
+                                                <p class="py-4">Selecione a porta de destino:</p>
+                                                
+                                                <form action="/ports/{{ port.id }}/connect" method="post">
+                                                    <select name="target_port_id" class="select select-bordered w-full mb-4" required>
+                                                        <option disabled selected>Selecione o destino</option>
+                                                        {% for dev in all_devices %}
+                                                            {% if dev.id != device.id %}
+                                                                <optgroup label="{{ dev.name }} ({{ dev.rack.name }})">
+                                                                    {% for p in dev.ports %}
+                                                                        {% if not p.connected_to %}
+                                                                            <option value="{{ p.id }}">{{ p.name }}</option>
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                </optgroup>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </select>
+                                                    <div class="modal-action">
+                                                        <button type="submit" class="btn btn-success">Salvar Conexão</button>
+                                                        <button type="button" class="btn" onclick="document.getElementById('connect_modal_{{ port.id }}').close()">Cancelar</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                            <form method="dialog" class="modal-backdrop">
+                                                <button>close</button>
+                                            </form>
+                                        </dialog>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if not device.ports %}
+                    <div class="text-center py-8 text-base-content/50">
+                        Nenhuma porta cadastrada.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Ports -->
+    <div>
+        <div class="card bg-base-100 shadow-xl border border-base-300">
+            <div class="card-body">
+                <h2 class="card-title">Adicionar Portas</h2>
+                <form action="/devices/{{ device.id }}/ports/add" method="post">
+                    <div class="form-control mb-4">
+                        <label class="label"><span class="label-text">Nomes das Portas</span></label>
+                        <input type="text" name="name" placeholder="Ex: 1, 2, 3 ou Gi0/1" class="input input-bordered w-full" required />
+                        <label class="label">
+                            <span class="label-text-alt">Use vírgulas para adicionar várias (ex: 1,2,3,4)</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-full">Adicionar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

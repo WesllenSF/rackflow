@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <div class="prose">
+        <h1>{{ rack.name }}</h1>
+        <p>Local: {{ rack.location }} | Altura: {{ rack.height }}U</p>
+    </div>
+    <a href="/" class="btn btn-outline">Voltar</a>
+</div>
+
+<div class="flex flex-col lg:flex-row gap-8">
+    
+    <!-- Visual Rack View -->
+    <div class="w-full lg:w-1/3">
+        <h3 class="text-xl font-bold mb-4 text-center">Visualização Frontal</h3>
+        <div class="border-2 border-base-content/20 rounded-lg p-1 bg-base-200">
+            <div class="flex flex-col w-full">
+                {% for slot in rack_visual %}
+                    {% if slot.type == 'device' %}
+                        <!-- Device Block -->
+                        <div class="w-full flex border-b border-base-content/10" style="height: {{ slot.height * 30 }}px;">
+                            <div class="w-10 flex-none bg-base-300 flex items-center justify-center text-xs font-mono border-r border-base-content/10">
+                                {{ slot.u }}
+                            </div>
+                            <div class="flex-grow bg-primary/20 hover:bg-primary/30 transition-colors relative group border border-primary/40 m-0.5 rounded flex items-center justify-between px-2">
+                                <a href="/devices/{{ slot.device.id }}" class="absolute inset-0 z-0"></a>
+                                <span class="font-bold text-sm z-10 pointer-events-none">{{ slot.device.name }}</span>
+                                <span class="text-xs opacity-70 z-10 pointer-events-none">{{ slot.device.device_type }}</span>
+                                <form action="/devices/{{ slot.device.id }}/delete" method="POST" class="z-20 opacity-0 group-hover:opacity-100 transition-opacity" onsubmit="return confirm('Tem certeza?');">
+                                    <button class="btn btn-xs btn-circle btn-error">✕</button>
+                                </form>
+                            </div>
+                            <div class="w-10 flex-none bg-base-300 flex items-center justify-center text-xs font-mono border-l border-base-content/10">
+                                {{ slot.u }}
+                            </div>
+                        </div>
+                    {% else %}
+                        <!-- Empty Slot -->
+                        <div class="w-full flex border-b border-base-content/10" style="height: 30px;">
+                            <div class="w-10 flex-none bg-base-300 flex items-center justify-center text-xs font-mono text-base-content/30 border-r border-base-content/10">
+                                {{ slot.u }}
+                            </div>
+                            <div class="flex-grow bg-base-100"></div>
+                            <div class="w-10 flex-none bg-base-300 flex items-center justify-center text-xs font-mono text-base-content/30 border-l border-base-content/10">
+                                {{ slot.u }}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Details & Add Device -->
+    <div class="w-full lg:w-2/3">
+        <div class="card bg-base-100 shadow-xl mb-6">
+            <div class="card-body">
+                <h2 class="card-title">Adicionar Equipamento</h2>
+                <form action="/racks/{{ rack.id }}/devices/add" method="post" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Nome do Equipamento</span></label>
+                        <input type="text" name="name" placeholder="Ex: Switch Core" class="input input-bordered" required />
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Tipo</span></label>
+                        <input type="text" name="device_type" placeholder="Ex: Cisco 2960" class="input input-bordered" required />
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Posição Inicial (U)</span></label>
+                        <input type="number" name="u_position" placeholder="Ex: 40" class="input input-bordered" required min="1" max="{{ rack.height }}" />
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Altura (U)</span></label>
+                        <input type="number" name="u_height" value="1" class="input input-bordered" required min="1" />
+                    </div>
+                    <div class="col-span-1 md:col-span-2 mt-4">
+                        <button type="submit" class="btn btn-primary w-full">Adicionar ao Rack</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <h3 class="text-lg font-bold mb-2">Lista de Equipamentos</h3>
+            <table class="table table-zebra w-full bg-base-100 rounded-lg shadow">
+                <thead>
+                    <tr>
+                        <th>Posição</th>
+                        <th>Nome</th>
+                        <th>Tipo</th>
+                        <th>Portas</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in rack.devices|sort(attribute='u_position', reverse=True) %}
+                    <tr>
+                        <td class="font-mono">{{ device.u_position }}U (+{{ device.u_height - 1}})</td>
+                        <td class="font-bold">{{ device.name }}</td>
+                        <td>{{ device.device_type }}</td>
+                        <td>{{ device.ports|length }}</td>
+                        <td>
+                            <a href="/devices/{{ device.id }}" class="btn btn-sm btn-ghost">Gerenciar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

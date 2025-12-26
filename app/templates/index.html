@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="prose max-w-none mb-6">
+    <h1>Dashboard de Racks</h1>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- List Racks -->
+    {% for rack in racks %}
+    <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card-body">
+            <h2 class="card-title">{{ rack.name }}</h2>
+            <p>Localização: {{ rack.location }}</p>
+            <p>Altura: {{ rack.height }}U</p>
+            <p>Equipamentos: {{ rack.devices|length }}</p>
+            <div class="card-actions justify-end">
+                <a href="/racks/{{ rack.id }}" class="btn btn-primary btn-sm">Ver</a>
+                <form action="/racks/{{ rack.id }}/delete" method="post" onsubmit="return confirm('Tem certeza que deseja excluir este rack e todos os seus equipamentos?');" style="display:inline;">
+                    <button type="submit" class="btn btn-error btn-sm">Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Add Rack Card -->
+    <div class="card bg-base-100 shadow-xl border-2 border-dashed border-base-300 flex justify-center items-center p-6">
+        <h3 class="font-bold text-lg mb-4">Adicionar Novo Rack</h3>
+        <form action="/racks/add" method="post" class="w-full">
+            <div class="form-control w-full mb-2">
+                <label class="label"><span class="label-text">Nome do Rack</span></label>
+                <input type="text" name="name" placeholder="Ex: Rack Servidores 01" class="input input-bordered w-full" required />
+            </div>
+            <div class="form-control w-full mb-2">
+                <label class="label"><span class="label-text">Localização</span></label>
+                <input type="text" name="location" placeholder="Ex: Sala 101" class="input input-bordered w-full" required />
+            </div>
+            <div class="form-control w-full mb-4">
+                <label class="label"><span class="label-text">Altura (U)</span></label>
+                <input type="number" name="height" value="42" class="input input-bordered w-full" required />
+            </div>
+            <button type="submit" class="btn btn-success w-full">Criar Rack</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

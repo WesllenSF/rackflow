@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-[50vh]">
+    <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+        <div class="card-body">
+            <h2 class="card-title text-center justify-center mb-4">Login DocRack</h2>
+            
+            {% if error %}
+            <div role="alert" class="alert alert-error mb-4 py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <form action="/login" method="post">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Usuário</span>
+                    </label>
+                    <input type="text" name="username" placeholder="admin" class="input input-bordered" required />
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Senha</span>
+                    </label>
+                    <input type="password" name="password" placeholder="******" class="input input-bordered" required />
+                </div>
+                <div class="form-control mt-6">
+                    <button class="btn btn-primary">Entrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
